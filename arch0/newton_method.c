@@ -50,18 +50,22 @@ long double next(exponentiated_number* exp_num, newton_method_instance* newton)
     ++newton->cur_itr;
 
     if(isnan(newton->x1)) {
-        return newton_iteration_statuses[NaN];
+    //return 15;  
+      return newton_iteration_statuses[NaN];
     }
 
     if(isinf(newton->x1)) {
+      //return 20;
         return newton_iteration_statuses[INF];
     }
 
     if(fabs(h) < newton->tolerance) {
+      //return 30;
         return newton_iteration_statuses[SOLUTION_FOUND];
     }
 
     newton->x0 = newton->x1;
+    //return 35;
     return newton->x1;
 }
 

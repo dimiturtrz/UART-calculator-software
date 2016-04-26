@@ -14,7 +14,7 @@ extern "C"{
 LiquidCrystal lcd(23,25, 22,24,26,28);
 
 String values[2][10] = {{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
-                   { "+", "-", "*", "/", "^", "(", ")", ".", "DEL", "ENTER"}};
+                       { "+", "-", "*", "/", "^", "(", ")", ".", "DEL", "ENTER"}};
 int num_buttons = 10;
 int buttons[] = {12,11,10,9,8,7,6,5,4,3,2};
 
@@ -105,7 +105,8 @@ String handle_expression(String expression){
   int power = expr.indexOf('^');
   if(power == -1){
      return normal_eval(expression);
-  }else{
+  }else{      
+    while(digitalRead(buttons[9]) == HIGH);
     String base_str = expr.substring(0, power);
     String exponent_str = expr.substring(power+1);
     
@@ -132,20 +133,66 @@ long double newton_loop(long double b, long double e){
   newton_method_instance newton;
   long double x0, next_;
   
+  /*Serial.println("!!!");
+  char buf1[50], buf2[50];
+  dtostrf(b, 3, 4, buf1);
+  dtostrf(e, 3, 4, buf2);
+  String b_str(buf1);
+  String e_str(buf2);
+  
+  Serial.println(b_str);
+  Serial.println(e_str);*/
+  
   init_exponentiated_number(&exp_num, b, e);
   x0 = pick_x0(exp_num) X0_FORCED_ERROR;
   init_newton_method_instance(&newton, x0, NEWTON_METHOD_TOLERANCE, NEWTON_METHOD_MAX_ITR, &exp_num);
   
+  Serial.println(int(exp_num.power_numerator));
+  Serial.println(int(exp_num.power_denominator));
+  
   while (true){
-    if(digitalRead(buttons[8])){
+    //while(digitalRead(buttons[8]) == HIGH);
+    //while(digitalRead(buttons[9]) == HIGH);
+    if(digitalRead(buttons[8]) == HIGH){
       next_ = next(&exp_num, &newton);
+      Serial.println("IMportant info to follow");
+      
+      
+      if(next_ == -5432.1) {
+        char buf1[50], buf2[50];
+  dtostrf(newton.cur_itr, 3, 4, buf1);
+  dtostrf(newton.x1, 3, 4, buf2);
+  String b_str(buf1);
+  String e_str(buf2);
+        Serial.println("After " + b_str + " iterations, root = " + e_str + "\n");
+    } else if(next_ == -8080.0 || next_ == -1234.5) {
+        Serial.println("out of order! go fuck a goat and come back later\n"); 
+    } else {
+              char buf1[50], buf2[50];
+  dtostrf(newton.cur_itr, 3, 4, buf1);
+  dtostrf(next_, 3, 4, buf2);
+  String b_str(buf1);
+  String e_str(buf2);
+        Serial.println("   At Iteration no. " + b_str + ", x = " + e_str + "\n");
+        //return 1;
+    }
+      
+      
       char buf[50];
+      Serial.println(int(next_));
       dtostrf(next_, 3, 4, buf);
       String out(buf);
       Serial.println(buf);
+      while(digitalRead(buttons[8]) == HIGH);
     }
-    if(digitalRead(buttons[9])){
-      return fastforward(&exp_num, &newton);
+    if(digitalRead(buttons[9]) == HIGH){
+      Serial.println("imma out of hereh");
+      long double fastf = fastforward(&exp_num, &newton);
+      char buf1[50];
+  dtostrf(fastf, 3, 4, buf1);
+  String b_str(buf1);
+  Serial.println(b_str);
+      return fastf;
     }
   }
 }
